@@ -202,6 +202,76 @@
 .lp-bar-blue   { background: #3b82f6; }
 .lp-bar-indigo { background: #6366f1; }
 
+/* ------------------------------------------------------------------ */
+/* Demo modal                                                          */
+/* ------------------------------------------------------------------ */
+
+.lp-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.lp-modal--open {
+    display: flex;
+}
+
+.lp-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+}
+
+.lp-modal-box {
+    position: relative;
+    z-index: 1;
+    background: #000;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    width: 100%;
+    max-width: 860px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+}
+
+.lp-modal-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.lp-modal-close:hover { background: rgba(255, 255, 255, 0.3); }
+
+.lp-modal-video {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+}
+
+.lp-modal-video iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
     .lp-stats { grid-template-columns: 1fr; }
