@@ -26,6 +26,7 @@ footer link href from "#" to "/terms".
 
 git commit -m "landing: add terms and conditions page and route”
 ###########################################################################################################################################################
+# Task-3 adding privacy policy
 Do the same as you did for the Terms and Conditions page,
 but for Privacy Policy.
 
@@ -41,7 +42,7 @@ footer link href from "#" to "/privacy".
 4. Make sure the appearance looks like the website's theme
 
 git commit -m "landing: add privacy policy page and route”
-
+###########################################################################################################################################################
 I've attached a screenshot of the updated Spendly hero section design.
 
 Modify only the hero section in @templates/landing.html and @static/css/landing.css
