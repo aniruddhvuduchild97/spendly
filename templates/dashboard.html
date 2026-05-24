@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="dashboard-section">
+    <div class="dashboard-container">
+
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Welcome back, {{ name }}.</h1>
+            <p class="dashboard-subtitle">Here's your financial overview.</p>
+        </div>
+
+        <div class="dashboard-placeholder">
+            <span class="placeholder-icon">◈</span>
+            <p class="placeholder-text">Your expenses will appear here in a later step.</p>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

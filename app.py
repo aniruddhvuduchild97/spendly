@@ -6,6 +6,12 @@ app = Flask(__name__)
 app.secret_key = "spendly-dev-secret"
 
 
+def login_required():
+    if not session.get('user_id'):
+        return redirect(url_for('login'))
+    return None
+
+
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
@@ -18,6 +24,8 @@ def landing():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "GET":
+        if session.get('user_id'):
+            return redirect(url_for('dashboard'))
         return render_template("register.html")
 
     name = request.form["name"]
@@ -47,6 +55,8 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
+        if session.get('user_id'):
+            return redirect(url_for('dashboard'))
         return render_template("login.html")
 
     email = request.form["email"]
@@ -68,7 +78,10 @@ def login():
 
 @app.route("/dashboard")
 def dashboard():
-    return "Dashboard — coming in a later step"
+    guard = login_required()
+    if guard:
+        return guard
+    return render_template("dashboard.html", name=session["user_name"])
 
 
 # ------------------------------------------------------------------ #
