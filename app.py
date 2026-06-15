@@ -1,9 +1,19 @@
+import os
+from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
-from database.db import get_db, init_db, seed_db
+from database.db import get_db, init_db, seed_db, get_expenses_for_period
 
 app = Flask(__name__)
 app.secret_key = "spendly-dev-secret"
+
+
+def is_valid_date(s):
+    try:
+        datetime.strptime(s, "%Y-%m-%d")
+        return True
+    except ValueError:
+        return False
 
 
 def login_required():
@@ -110,38 +120,73 @@ def profile():
     if guard:
         return guard
 
+    today = date.today()
+    default_start = today.replace(day=1).isoformat()
+    default_end   = today.isoformat()
+
+    start_date = request.args.get("start_date", default_start)
+    end_date   = request.args.get("end_date",   default_end)
+
+    if not is_valid_date(start_date) or not is_valid_date(end_date):
+        start_date, end_date = default_start, default_end
+
+    filter_error = None
+    if start_date > end_date:
+        filter_error = "Start date must be on or before end date."
+
+    db = get_db()
+
+    row = db.execute(
+        "SELECT name, email, created_at FROM users WHERE id = ?",
+        (session["user_id"],)
+    ).fetchone()
+    name     = row["name"]
+    initials = "".join(p[0].upper() for p in name.split()[:2])
+    joined   = datetime.strptime(row["created_at"][:10], "%Y-%m-%d")
     user = {
-        "name": "Demo User",
-        "initials": "DU",
-        "email": "demo@spendly.com",
-        "member_since": "January 1, 2026",
+        "name":         name,
+        "initials":     initials,
+        "email":        row["email"],
+        "member_since": joined.strftime("%B %d, %Y"),
     }
+
+    expense_rows = [] if filter_error else get_expenses_for_period(
+        db, session["user_id"], start_date, end_date
+    )
+    db.close()
+
+    transactions = []
+    cat_totals   = {}
+    total_spent  = 0.0
+    for r in expense_rows:
+        transactions.append({
+            "date":        datetime.strptime(r["date"], "%Y-%m-%d").strftime("%b %d, %Y"),
+            "description": r["description"],
+            "category":    r["category"],
+            "amount":      r["amount"],
+        })
+        cat_totals[r["category"]] = cat_totals.get(r["category"], 0) + r["amount"]
+        total_spent += r["amount"]
+
+    top_category = max(cat_totals, key=cat_totals.get) if cat_totals else "—"
     stats = {
-        "total_spent": 339.49,
-        "transaction_count": 8,
-        "top_category": "Bills",
+        "total_spent":       total_spent,
+        "transaction_count": len(expense_rows),
+        "top_category":      top_category,
     }
-    transactions = [
-        {"date": "May 17, 2026", "description": "Groceries",             "category": "Food",          "amount": 22.00},
-        {"date": "May 14, 2026", "description": "Miscellaneous",          "category": "Other",         "amount": 9.99},
-        {"date": "May 12, 2026", "description": "Clothing",               "category": "Shopping",      "amount": 85.00},
-        {"date": "May 10, 2026", "description": "Streaming subscription", "category": "Entertainment", "amount": 15.00},
-        {"date": "May 7, 2026",  "description": "Vitamins",               "category": "Health",        "amount": 30.00},
-        {"date": "May 5, 2026",  "description": "Electricity bill",       "category": "Bills",         "amount": 120.00},
-        {"date": "May 3, 2026",  "description": "Monthly bus pass",       "category": "Transport",     "amount": 45.00},
-        {"date": "May 1, 2026",  "description": "Lunch at cafe",          "category": "Food",          "amount": 12.50},
-    ]
+
     categories = [
-        {"name": "Bills",         "amount": 120.00, "pct": 35},
-        {"name": "Shopping",      "amount": 85.00,  "pct": 25},
-        {"name": "Transport",     "amount": 45.00,  "pct": 13},
-        {"name": "Food",          "amount": 34.50,  "pct": 10},
-        {"name": "Health",        "amount": 30.00,  "pct": 9},
-        {"name": "Entertainment", "amount": 15.00,  "pct": 4},
-        {"name": "Other",         "amount": 9.99,   "pct": 3},
-    ]
-    return render_template("profile.html", user=user, stats=stats,
-                           transactions=transactions, categories=categories)
+        {"name": cat, "amount": amt, "pct": round(amt / total_spent * 100)}
+        for cat, amt in sorted(cat_totals.items(), key=lambda x: x[1], reverse=True)
+    ] if total_spent > 0 else []
+
+    return render_template(
+        "profile.html",
+        user=user, stats=stats,
+        transactions=transactions, categories=categories,
+        start_date=start_date, end_date=end_date,
+        filter_error=filter_error,
+    )
 
 
 @app.route("/expenses/add")
@@ -165,4 +210,4 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "0") == "1", port=5001)
