@@ -36,6 +36,23 @@
             </div>
         </div>
 
+        <!-- Date filter -->
+        <div class="profile-card">
+            {% if filter_error %}
+            <p class="form-error">{{ filter_error }}</p>
+            {% endif %}
+            <form class="date-filter-form" method="get" action="{{ url_for('profile') }}">
+                <div class="date-filter-fields">
+                    <label class="date-filter-label" for="start_date">From</label>
+                    <input class="form-input" type="date" id="start_date" name="start_date" value="{{ start_date }}">
+                    <label class="date-filter-label" for="end_date">To</label>
+                    <input class="form-input" type="date" id="end_date" name="end_date" value="{{ end_date }}">
+                    <button class="btn btn-primary" type="submit">Filter</button>
+                    <a class="btn btn-ghost" href="{{ url_for('profile') }}">Clear</a>
+                </div>
+            </form>
+        </div>
+
         <!-- Transaction history -->
         <div class="profile-card">
             <h2 class="profile-section-title">Recent Transactions</h2>
@@ -49,16 +66,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for t in transactions %}
+                    {% if transactions %}
+                        {% for t in transactions %}
+                        <tr>
+                            <td>{{ t.date }}</td>
+                            <td>{{ t.description }}</td>
+                            <td>
+                                <span class="badge badge-{{ t.category | lower }}">{{ t.category }}</span>
+                            </td>
+                            <td class="amount">₹{{ "{:,.2f}".format(t.amount) }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
                     <tr>
-                        <td>{{ t.date }}</td>
-                        <td>{{ t.description }}</td>
-                        <td>
-                            <span class="badge badge-{{ t.category | lower }}">{{ t.category }}</span>
-                        </td>
-                        <td class="amount">₹{{ "{:,.2f}".format(t.amount) }}</td>
+                        <td colspan="4" class="empty-state">No transactions found for this date range.</td>
                     </tr>
-                    {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -67,15 +90,19 @@
         <div class="profile-card">
             <h2 class="profile-section-title">Category Breakdown</h2>
             <div class="breakdown-list">
-                {% for c in categories %}
-                <div class="breakdown-row">
-                    <span class="mock-cat">{{ c.name }}</span>
-                    <div class="mock-bar-track">
-                        <div class="mock-bar" style="width: {{ c.pct }}%"></div>
+                {% if categories %}
+                    {% for c in categories %}
+                    <div class="breakdown-row">
+                        <span class="mock-cat">{{ c.name }}</span>
+                        <div class="mock-bar-track">
+                            <div class="mock-bar" style="width: {{ c.pct }}%"></div>
+                        </div>
+                        <span class="mock-amt">₹{{ "{:,.2f}".format(c.amount) }}</span>
                     </div>
-                    <span class="mock-amt">₹{{ "{:,.2f}".format(c.amount) }}</span>
-                </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                <p class="empty-state">No data for this period.</p>
+                {% endif %}
             </div>
         </div>
 

@@ -38,6 +38,14 @@ def init_db():
     conn.close()
 
 
+def get_expenses_for_period(db, user_id, start_date, end_date):
+    return db.execute(
+        "SELECT amount, category, date, description FROM expenses "
+        "WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC",
+        (user_id, start_date, end_date)
+    ).fetchall()
+
+
 def seed_db():
     conn = get_db()
     if conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]:
