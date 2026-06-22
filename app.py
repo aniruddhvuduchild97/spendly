@@ -1,4 +1,6 @@
+import math
 import os
+import secrets
 from datetime import date, datetime
 from flask import Flask, render_template, request, redirect, url_for, session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -6,6 +8,9 @@ from database.db import get_db, init_db, seed_db, get_expenses_for_period
 
 app = Flask(__name__)
 app.secret_key = "spendly-dev-secret"
+
+CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
+VALID_CATEGORIES = set(CATEGORIES)
 
 
 def is_valid_date(s):
@@ -197,9 +202,62 @@ def analytics():
     return render_template("analytics.html")
 
 
-@app.route("/expenses/add")
+def _render_add_form(error=None, amount="", category="", expense_date="", description=""):
+    return render_template(
+        "add_expense.html",
+        error=error,
+        amount=amount,
+        category=category,
+        date=expense_date,
+        description=description,
+        categories=CATEGORIES,
+        csrf_token=session.get("csrf_token", ""),
+        today=date.today().isoformat(),
+    )
+
+
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    guard = login_required()
+    if guard:
+        return guard
+
+    if request.method == "GET":
+        session["csrf_token"] = secrets.token_hex(16)
+        return _render_add_form()
+
+    if request.form.get("csrf_token") != session.get("csrf_token"):
+        return _render_add_form(error="Invalid request. Please try again.")
+
+    amount_raw   = request.form.get("amount", "").strip()
+    category     = request.form.get("category", "").strip()
+    expense_date = request.form.get("date", "").strip()
+    description  = request.form.get("description", "").strip()[:200]
+
+    try:
+        amount = float(amount_raw)
+        if amount <= 0 or not math.isfinite(amount) or amount > 1_000_000:
+            raise ValueError
+    except ValueError:
+        return _render_add_form("Amount must be a positive number no greater than 1,000,000.",
+                                amount_raw, category, expense_date, description)
+
+    if not is_valid_date(expense_date):
+        return _render_add_form("Please enter a valid date.",
+                                amount_raw, category, expense_date, description)
+
+    if category not in VALID_CATEGORIES:
+        return _render_add_form("Please select a valid category.",
+                                amount_raw, category, expense_date, description)
+
+    db = get_db()
+    db.execute(
+        "INSERT INTO expenses (user_id, amount, category, date, description) VALUES (?, ?, ?, ?, ?)",
+        (session.get("user_id"), amount, category, expense_date, description or None)
+    )
+    db.commit()
+    db.close()
+    return redirect(url_for("profile"))
 
 
 @app.route("/expenses/<int:id>/edit")

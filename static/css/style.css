@@ -478,6 +478,11 @@ a { color: inherit; text-decoration: none; }
 
 .auth-switch a:hover { text-decoration: underline; }
 
+.text-faint {
+    color: var(--ink-faint);
+    font-weight: 400;
+}
+
 /* ------------------------------------------------------------------ */
 /* Footer                                                              */
 /* ------------------------------------------------------------------ */
