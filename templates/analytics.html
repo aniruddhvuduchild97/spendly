@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Spendly{% endblock %}
+
+{% block content %}
+
+<section class="analytics-section">
+    <div class="analytics-container">
+
+        <div class="analytics-icon-wrap">
+            ◈
+        </div>
+
+        <span class="analytics-eyebrow">Coming Soon</span>
+
+        <h1 class="analytics-title">
+            Your money,<br><em>visualised.</em>
+        </h1>
+
+        <p class="analytics-subtitle">
+            We're building powerful analytics to help you understand your spending patterns,
+            track trends over time, and make smarter financial decisions.
+        </p>
+
+        <div class="analytics-features">
+            <div class="analytics-feature-card">
+                <div class="analytics-feature-icon">📊</div>
+                <div class="analytics-feature-title">Spending Trends</div>
+                <div class="analytics-feature-desc">Month-over-month charts showing where your money goes.</div>
+            </div>
+            <div class="analytics-feature-card">
+                <div class="analytics-feature-icon">🥧</div>
+                <div class="analytics-feature-title">Category Breakdown</div>
+                <div class="analytics-feature-desc">Visual breakdown of expenses by category at a glance.</div>
+            </div>
+            <div class="analytics-feature-card">
+                <div class="analytics-feature-icon">🎯</div>
+                <div class="analytics-feature-title">Budget Goals</div>
+                <div class="analytics-feature-desc">Set limits and track progress toward your savings goals.</div>
+            </div>
+        </div>
+
+        <div class="analytics-actions">
+            <a href="{{ url_for('dashboard') }}" class="btn-primary">Go to Dashboard</a>
+            <a href="{{ url_for('profile') }}" class="btn-ghost">View Profile</a>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

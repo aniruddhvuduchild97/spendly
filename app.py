@@ -189,6 +189,14 @@ def profile():
     )
 
 
+@app.route("/analytics")
+def analytics():
+    guard = login_required()
+    if guard:
+        return guard
+    return render_template("analytics.html")
+
+
 @app.route("/expenses/add")
 def add_expense():
     return "Add expense — coming in Step 7"
